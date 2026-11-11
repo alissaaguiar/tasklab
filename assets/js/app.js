@@ -138,4 +138,27 @@ formulario.addEventListener("submit", event => {
     renderizarTarefas(tarefas);
 });
 
+listaTarefas.addEventListener("click", event => {
+    const botao = event.target.closest("[data-acao]");
+
+    if (!botao) {
+        return;
+    }
+
+    const id = Number(botao.dataset.id);
+    const acao = botao.dataset.acao;
+
+    const tarefa = tarefas.find(t => t.id === id);
+
+    if (!tarefa) {
+        return;
+    }
+
+    if (acao === "concluir"){
+        tarefa.concluida = !tarefa.concluida;
+        renderizarTarefas(tarefas);
+    }
+
+});
+
 renderizarTarefas(tarefas);
