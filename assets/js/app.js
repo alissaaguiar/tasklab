@@ -1,6 +1,7 @@
 console.log("TaskLab iniciado.");
 
 let tarefas = [];
+let idEmEdicao = null;
 
 const formulario = document.querySelector("#form-tarefa");
 
@@ -16,6 +17,10 @@ const mensagemFormulario = document.querySelector("#mensagem-formulario");
 
 const listaTarefas = document.querySelector("#lista-tarefas");
 
+const tituloForm = document.querySelector("#titulo-formulario");
+const btnSubmit = formulario.querySelector("#botao-salvar");
+const btnCancelar = document.querySelector("#botao-cancelar");
+
 // --------------- Funções ----------------
 
 function gerarProximoId() {
@@ -29,6 +34,18 @@ function gerarProximoId() {
             tarefa => tarefa.id);
 
     return Math.max(...ids) + 1;
+}
+
+function resetarFormulario() {
+    idEmEdicao = null;
+    formulario.reset();
+    
+    // Restaura interface para o modo de cadastro
+    if (tituloForm) tituloForm.textContent = "Cadastrar Tarefa";
+    if (btnSubmit) btnSubmit.textContent = "Salvar tarefa";
+    if (btnCancelar) btnCancelar.style.display = "none";
+
+    renderizarTarefas(tarefas);
 }
 
 function validarTarefa(titulo, prioridade, data) {
@@ -101,7 +118,6 @@ function renderizarTarefas(tarefas) {
     } else minhasTarefas.textContent = tarefas.length;
 }
 
-
 // -------------- eventos -----------------
 
 formulario.addEventListener("submit", event => {
@@ -121,17 +137,35 @@ formulario.addEventListener("submit", event => {
         return;
     }
 
-    const novaTarefa = {
-        id: gerarProximoId(),
-        titulo,
-        descricao,
-        prioridade,
-        data,
-        concluida: false
-    };
-    tarefas.push(novaTarefa);
+    if (idEmEdicao === null) { // modo cadastro
 
-    mensagemFormulario.textContent = "Tarefa cadastrada com sucesso!";
+        const novaTarefa = {
+            id: gerarProximoId(),
+            titulo,
+            descricao,
+            prioridade,
+            data,
+            concluida: false
+        };
+        tarefas.push(novaTarefa);
+
+        mensagemFormulario.textContent = "Tarefa cadastrada com sucesso!";
+    }
+    else { //edição
+        const indice = tarefas.findIndex(t => t.id === idEmEdicao);
+
+        if (indice !== -1) {
+            tarefas[indice] = {
+                ...tarefas[indice], //preserva id e estado
+                titulo,
+                descricao,
+                prioridade,
+                data
+            }
+        }
+        mensagemFormulario.textContent = "Tarefa alterada com sucesso!";
+    }
+
     mensagemFormulario.style.color = "green";
 
     formulario.reset();
@@ -149,16 +183,41 @@ listaTarefas.addEventListener("click", event => {
     const acao = botao.dataset.acao;
 
     const tarefa = tarefas.find(t => t.id === id);
+    if (!tarefa) return;
 
-    if (!tarefa) {
-        return;
-    }
-
-    if (acao === "concluir"){
+    if (acao === "concluir") {
         tarefa.concluida = !tarefa.concluida;
         renderizarTarefas(tarefas);
     }
+    else if (acao === "editar") {
+        idEmEdicao = tarefa.id;
 
+        campoTitulo.value = tarefa.titulo;
+        campoDescricao.value = tarefa.descricao;
+        campoPrioridade.value = tarefa.prioridade;
+        campoData.value = tarefa.data;
+
+        // 38. Modifica a interface
+        if (tituloForm) tituloForm.textContent = `Editando Tarefa #${id}`;
+        if (btnSubmit) btnSubmit.textContent = "Atualizar tarefa";
+        if (btnCancelar) btnCancelar.style.display = "inline-block";
+
+        mensagemFormulario.textContent = "";
+
+        renderizarTarefas(tarefa);
+    }
+
+    renderizarTarefas(tarefas);
 });
+
+
+
+if (btnCancelar) {
+    btnCancelar.addEventListener("click", () => {
+        resetarFormulario();
+        mensagemFormulario.textContent = "Edição cancelada.";
+        mensagemFormulario.style.color = "gray";
+    });
+}
 
 renderizarTarefas(tarefas);
