@@ -129,7 +129,19 @@ function carregarTarefas() {
 
     if (!dados) return [];
 
-    return JSON.parse(dados);
+    try {
+        const tarefasSalvas = JSON.parse(dados);
+
+        if (!Array.isArray(tarefasSalvas)) {
+            return [];
+        }
+        
+        return tarefasSalvas;
+    } 
+    catch (erro) {
+        console.error("Não foi possível carregar as tarefas.", erro);
+        return [];
+    }
 }
 
 function atualizarAplicacao() {
