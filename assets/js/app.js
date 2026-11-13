@@ -1,6 +1,6 @@
 console.log("TaskLab iniciado.");
 
-let tarefas = [];
+let tarefas = carregarTarefas();
 let idEmEdicao = null;
 
 const formulario = document.querySelector("#form-tarefa");
@@ -45,7 +45,7 @@ function resetarFormulario() {
     if (btnSubmit) btnSubmit.textContent = "Salvar tarefa";
     if (btnCancelar) btnCancelar.style.display = "none";
 
-    renderizarTarefas(tarefas);
+    atualizarAplicacao();
 }
 
 function validarTarefa(titulo, prioridade, data) {
@@ -67,9 +67,7 @@ function validarTarefa(titulo, prioridade, data) {
 }
 
 function renderizarTarefas(tarefas) {
-    if (idEmEdicao !== null) {
-        listaTarefas.textContent = "";
-    }
+    listaTarefas.textContent = "";
 
     tarefas.forEach(tarefa => {
         const artigo = document.createElement("article");
@@ -117,6 +115,27 @@ function renderizarTarefas(tarefas) {
     if (tarefas.length === 0) {
         minhasTarefas.textContent = "Nenhuma tarefa cadastrada.";
     } else minhasTarefas.textContent = tarefas.length;
+}
+
+function salvarTarefas() {
+
+    const dados = JSON.stringify(tarefas);
+    localStorage.setItem("tasklab:tarefas", dados);
+}
+
+function carregarTarefas() {
+
+    const dados = localStorage.getItem("tasklab:tarefas");
+
+    if (!dados) return [];
+
+    return JSON.parse(dados);
+}
+
+function atualizarAplicacao() {
+
+    salvarTarefas();
+    renderizarTarefas(tarefas);
 }
 
 // -------------- eventos -----------------
@@ -170,7 +189,7 @@ formulario.addEventListener("submit", event => {
     mensagemFormulario.style.color = "green";
 
     formulario.reset();
-    renderizarTarefas(tarefas);
+    atualizarAplicacao();
 });
 
 listaTarefas.addEventListener("click", event => {
@@ -186,7 +205,7 @@ listaTarefas.addEventListener("click", event => {
 
     if (acao === "concluir") {
         tarefa.concluida = !tarefa.concluida;
-        renderizarTarefas(tarefas);
+        atualizarAplicacao();
     }
     else if (acao === "editar") {
         idEmEdicao = tarefa.id;
@@ -203,7 +222,6 @@ listaTarefas.addEventListener("click", event => {
 
         mensagemFormulario.textContent = "";
 
-        renderizarTarefas(tarefa);
     }
     else if (acao === "excluir") {
         const indice = tarefas.findIndex(t => t.id === id);
@@ -218,12 +236,11 @@ listaTarefas.addEventListener("click", event => {
             resetarFormulario();
         }
 
-        renderizarTarefas(tarefas);
         mensagemFormulario.textContent = "Tarefa removida com sucesso!";
         mensagemFormulario.style.color = "blue";
     }
 
-    renderizarTarefas(tarefas);
+    atualizarAplicacao();
 });
 
 
@@ -236,4 +253,8 @@ if (btnCancelar) {
     });
 }
 
-renderizarTarefas(tarefas);
+window.addEventListener("load", () => {
+    carregarTarefas();
+    renderizarTarefas(tarefas);
+})
+
