@@ -39,7 +39,7 @@ function gerarProximoId() {
 function resetarFormulario() {
     idEmEdicao = null;
     formulario.reset();
-    
+
     // Restaura interface para o modo de cadastro
     if (tituloForm) tituloForm.textContent = "Cadastrar Tarefa";
     if (btnSubmit) btnSubmit.textContent = "Salvar tarefa";
@@ -67,7 +67,9 @@ function validarTarefa(titulo, prioridade, data) {
 }
 
 function renderizarTarefas(tarefas) {
-    listaTarefas.textContent = "";
+    if (idEmEdicao !== null) {
+        listaTarefas.textContent = "";
+    }
 
     tarefas.forEach(tarefa => {
         const artigo = document.createElement("article");
@@ -111,7 +113,6 @@ function renderizarTarefas(tarefas) {
     })
 
     const minhasTarefas = document.querySelector("#resumo-tarefas");
-    minhasTarefas.textContent = "";
 
     if (tarefas.length === 0) {
         minhasTarefas.textContent = "Nenhuma tarefa cadastrada.";
@@ -175,9 +176,7 @@ formulario.addEventListener("submit", event => {
 listaTarefas.addEventListener("click", event => {
     const botao = event.target.closest("[data-acao]");
 
-    if (!botao) {
-        return;
-    }
+    if (!botao) return;
 
     const id = Number(botao.dataset.id);
     const acao = botao.dataset.acao;
@@ -205,6 +204,23 @@ listaTarefas.addEventListener("click", event => {
         mensagemFormulario.textContent = "";
 
         renderizarTarefas(tarefa);
+    }
+    else if (acao === "excluir") {
+        const indice = tarefas.findIndex(t => t.id === id);
+        if (indice === -1) return;
+
+        const confirma = window.confirm("Deseja excluir esta tarefa?");
+        if (!confirma) return;
+
+        tarefas.splice(indice, 1);
+
+        if (id === idEmEdicao) {
+            resetarFormulario();
+        }
+
+        renderizarTarefas(tarefas);
+        mensagemFormulario.textContent = "Tarefa removida com sucesso!";
+        mensagemFormulario.style.color = "blue";
     }
 
     renderizarTarefas(tarefas);
